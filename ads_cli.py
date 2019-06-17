@@ -12,11 +12,14 @@ import click
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler())
 
 p = re.compile("http[?s]://ui.adsabs.harvard.edu/abs/(.*)/")
 
 
 def find_bibcode(s):
+    """Find ADS bibcode from string
+    """
     if not s.startswith("http"):
         return s
     else:
@@ -34,8 +37,9 @@ def cli():
 @cli.command()
 @click.option("--query", "-q", prompt="Query")
 def search(query):
-    print('"' in query)
-    print(query)
+    """Search ADS
+    """
+    logger.debug(f"query: {query}")
     # q = ads.SearchQuery(q=query, rows=10)
     # for i, a in enumerate(q, 1):
     #     click.echo(f"{i:2d} {a.title[0][:85]}")
@@ -62,17 +66,12 @@ def export(format, bibcodes):
 
     because in bash, `&` means put process in the background.
     """
-    logger.info("bibcodes:", bibcodes)
-    print(bibcodes)
-
     bibcodes = list(map(find_bibcode, bibcodes))
-    print(bibcodes)
+    logger.debug(f"bibcodes: {bibcodes}")
 
-    # q = ads.ExportQuery(bibcodes, format=format)
+    q = ads.ExportQuery(bibcodes, format=format)
     # print(q())
-
-    # logger.info(q.response.get_ratelimits())
-    # print(q.response.get_ratelimits())
+    # logger.debug(f"Rate limit: f{q.response.get_ratelimits()}")
 
 
 @cli.command()
