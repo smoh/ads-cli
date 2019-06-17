@@ -22,8 +22,13 @@ setup(
     author_email="semyeong.oh@gmail.com",
     description="Command-line interface to ADS",
     long_description=read("README.rst"),
-    packages=find_packages(exclude=("tests",)),
-    install_requires=[],
+    # packages=find_packages(exclude=("tests",)),
+    py_modules=["ads_cli"],
+    install_requires=["click"],
+    entry_points="""
+        [console_scripts]
+        ads=ads_cli:cli
+    """,
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "License :: OSI Approved :: MIT License",
