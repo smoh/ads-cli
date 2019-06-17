@@ -1,4 +1,4 @@
-ads-cli
+ads_cli
 =======
 
 .. .. image:: https://img.shields.io/pypi/v/ads-cli.svg
@@ -33,4 +33,4 @@ Licence
 Authors
 -------
 
-`ads-cli` was written by `Semyeong Oh <semyeong.oh@gmail.com>`_.
+`ads_cli` was written by `Semyeong Oh <semyeong.oh@gmail.com>`_.
