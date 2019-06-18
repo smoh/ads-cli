@@ -12,7 +12,11 @@ import click
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
+ch = logging.StreamHandler()
+formatter = logging.Formatter("%(levelname)s - %(message)s")
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
 
 p = re.compile("http[?s]://ui.adsabs.harvard.edu/abs/(.*)/")
 
