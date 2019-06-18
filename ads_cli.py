@@ -17,6 +17,13 @@ logger.addHandler(logging.StreamHandler())
 p = re.compile("http[?s]://ui.adsabs.harvard.edu/abs/(.*)/")
 
 
+def get_name(ctx, param, value):
+    if not value and not click.get_text_stream("stdin").isatty():
+        return click.get_text_stream("stdin").read().strip()
+    else:
+        return value
+
+
 def find_bibcode(s):
     """Find ADS bibcode from string
     """
@@ -40,38 +47,58 @@ def search(query):
     """Search ADS
     """
     logger.debug(f"query: {query}")
-    # q = ads.SearchQuery(q=query, rows=10)
-    # for i, a in enumerate(q, 1):
-    #     click.echo(f"{i:2d} {a.title[0][:85]}")
-    # print(q.response.get_ratelimits())
+    q = ads.SearchQuery(q=query, rows=10)
+    for i, a in enumerate(q, 1):
+        click.echo(f"{i:2d} ", nl=False)
+        click.secho(f"{a.title[0][:85]}", fg="blue")
+        click.echo(f"   {a.first_author} {a.year} {a.bibcode}")
+    logger.debug(f"Rate limit: {q.response.get_ratelimits()}")
+
+    while True:
+        ix = click.prompt("Please enter article number", type=int)
+        if (ix >= 1) & (ix <= 10):
+            break
+    bibcode = q.articles[ix - 1].bibcode
+    click.echo(bibcode)
+
+    # click.prompt("Actions?", type=click.Choice(('e','d')))
 
 
 @cli.command()
 @click.option(
     "--format", default="bibtex", show_default=True, type=click.Choice(["bibtex"])
 )
-@click.argument("bibcodes", nargs=-1, required=True)
+@click.argument("bibcodes", nargs=-1, callback=get_name)
 def export(format, bibcodes):
     """
-    Export article citation
+    Export article(s) to the specified format.
 
+    - Export one article to bibtex:
+
+        ads export 2005IAUS..216..170H
+    
+    - Export multiple articles to bibtex:
+
+        ads export 2005IAUS..216..170H '2017A&A...608A.116C'
+    
     NOTE: If a bibcode contains `&` e.g., "2017A&A...608A.116C",
     either `&` needs to be escaped as in
     
-    $ads-cli export 2017A\&A...608A.116C
+        ads export 2017A\&A...608A.116C
     
     or put in quotes
 
-    $ads-cli export "2017A&A...608A.116C"
+        ads export "2017A&A...608A.116C"
 
     because in bash, `&` means put process in the background.
     """
+    # TODO: This is breaking up string if one item given from stdin.
     bibcodes = list(map(find_bibcode, bibcodes))
     logger.debug(f"bibcodes: {bibcodes}")
 
-    q = ads.ExportQuery(bibcodes, format=format)
+    # q = ads.ExportQuery(bibcodes, format=format)
     # print(q())
-    # logger.debug(f"Rate limit: f{q.response.get_ratelimits()}")
+    # logger.debug(f"Rate limit: {q.response.get_ratelimits()}")
 
 
 @cli.command()
