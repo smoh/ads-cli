@@ -133,6 +133,7 @@ def export(format, bibcodes):
 
 
 @cli.command()
+@click.argument("bibcode", nargs=-1, callback=get_name)
 def download(bibcode):
     pass
 
