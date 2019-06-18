@@ -17,6 +17,29 @@ formatter = logging.Formatter("%(levelname)s - %(message)s")
 ch.setFormatter(formatter)
 logger.addHandler(ch)
 
+supported_export_formats = [
+    "bibtex",
+    "bibtexabs",
+    "ads",
+    "endnote",
+    "proctie",
+    "ris",
+    "refworks",
+    "rss",
+    "medlars",
+    "dcxml",
+    "refxml",
+    "refabsxml",
+    "aastex",
+    "icarus",
+    "mnras",
+    "soph",
+    "votable",
+    # "custom"   # TODO: requires additional parameter
+]
+# monkey-patch class attribute
+ads.ExportQuery.FORMATS = supported_export_formats
+
 
 p = re.compile("http[?s]://ui.adsabs.harvard.edu/abs/(.*)/")
 
@@ -70,7 +93,11 @@ def search(query):
 
 @cli.command()
 @click.option(
-    "--format", default="bibtex", show_default=True, type=click.Choice(["bibtex"])
+    "--format",
+    "-f",
+    default="bibtex",
+    show_default=True,
+    type=click.Choice(supported_export_formats),
 )
 @click.argument("bibcodes", nargs=-1, callback=get_name)
 def export(format, bibcodes):
