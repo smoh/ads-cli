@@ -18,6 +18,14 @@ Usage
     
     ads download 2014AJ....147..124M 2012ApJ...759....6E ...
 
+
+Resources
+---------
+
+- [adstex](https://github.com/yymao/adstex)
+- [ads2bibdesk](https://github.com/r-xue/ads2bibdesk) using new API
+- [adsquery](https://github.com/cphyc/adsquery)
+
 Installation
 ------------
 
