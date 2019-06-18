@@ -46,7 +46,7 @@ p = re.compile("http[?s]://ui.adsabs.harvard.edu/abs/(.*)/")
 
 def get_name(ctx, param, value):
     if not value and not click.get_text_stream("stdin").isatty():
-        return click.get_text_stream("stdin").read().strip()
+        return click.get_text_stream("stdin").read().split()
     else:
         return value
 
