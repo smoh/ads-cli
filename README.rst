@@ -18,6 +18,8 @@ Usage
     
     ads download 2014AJ....147..124M 2012ApJ...759....6E ...
 
+    ads search -n 10 -s 10 -q 'author:"lorem, ipsum" ...' -o json 
+
 
 Resources
 ---------
