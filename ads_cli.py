@@ -5,6 +5,7 @@ Command-line interface to astrophysics data system
 import re
 import logging
 import urllib
+from string import Template
 
 # import ads.sandbox as ads
 import ads
@@ -41,6 +42,28 @@ supported_export_formats = [
 ads.ExportQuery.FORMATS = supported_export_formats
 
 
+DEFAULT_FIELDS = ["id", "author", "first_author", "bibcode", "id", "year", "title"]
+ALL_AVAILABLE_FIELDS = [
+    "ack",
+    "aff",
+    "alternate_bibcode",
+    "alternate_title",
+    "arxiv_class",
+    "author",
+    "author_count",
+    "bibcode",
+    "bibgroup",
+    "bibstem",
+    "citation",
+    "citation_count",
+    "data",
+    "doi",
+    "first_author",
+    "identifier",
+    "keyword",
+    "page",
+]
+
 p = re.compile("http[?s]://ui.adsabs.harvard.edu/abs/(.*)/")
 
 
@@ -70,23 +93,39 @@ def cli():
 
 @cli.command()
 @click.option("--query", "-q", prompt="Query")
-def search(query):
+@click.option("-n", default=10, type=int, help="number of entries to get")
+@click.option("--fstring", "-f", type=str, help="format string")
+@click.option("--field", "-fl", type=str, help="field to get")
+def search(query, n, fstring):
     """Search ADS
     """
-    logger.debug(f"query: {query}")
-    q = ads.SearchQuery(q=query, rows=10)
-    for i, a in enumerate(q, 1):
-        click.echo(f"{i:2d} ", nl=False)
-        click.secho(f"{a.title[0][:85]}", fg="blue")
-        click.echo(f"   {a.first_author} {a.year} {a.bibcode}")
-    logger.debug(f"Rate limit: {q.response.get_ratelimits()}")
+    MAX_ROWS = 2000
+    logger.debug(f"query: {query} n:{n}")
+    if n > 2000:
+        raise NotImplementedError()
+    rows = n
 
-    while True:
-        ix = click.prompt("Please enter article number", type=int)
-        if (ix >= 1) & (ix <= 10):
-            break
-    bibcode = q.articles[ix - 1].bibcode
-    click.echo(bibcode)
+    # combine all fields in fstring and field to fl param
+
+    q = ads.SearchQuery(q=query, rows=n)
+    if fstring:
+        t = Template(fstring)
+        for i, a in enumerate(q):
+            click.echo(t.substitute(bibcode=a.bibcode))
+        logger.debug(f"{fstring}")
+    else:
+        for i, a in enumerate(q, 1):
+            click.echo(f"{i:2d} ", nl=False)
+            click.secho(f"{a.title[0][:85]}", fg="blue")
+            click.echo(f"   {a.first_author} {a.year} {a.bibcode}")
+    # logger.debug(f"Rate limit: {q.response.get_ratelimits()}")
+
+    # while True:
+    #     ix = click.prompt("Please enter article number", type=int)
+    #     if (ix >= 1) & (ix <= 10):
+    #         break
+    # bibcode = q.articles[ix - 1].bibcode
+    # click.echo(bibcode)
 
     # click.prompt("Actions?", type=click.Choice(('e','d')))
 
