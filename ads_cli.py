@@ -10,6 +10,7 @@ from string import Template
 # import ads.sandbox as ads
 import ads
 import click
+import sys
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import WordCompleter
@@ -45,10 +46,20 @@ supported_export_formats = [
 ads.ExportQuery.FORMATS = supported_export_formats
 
 ads_query_completer = WordCompleter(
-    ["author", "first_author", "year", "property", "title"], ignore_case=True
+    [
+        "author:",
+        "first_authori:",
+        "year:",
+        "property:",
+        "title:",
+        "bibcode:",
+        "identifier:",
+        "doi:",
+    ],
+    ignore_case=True,
 )
 
-DEFAULT_FIELDS = ["id", "author", "first_author", "bibcode", "id", "year", "title"]
+DEFAULT_FIELDS = ["id", "author", "first_author", "bibcode", "year", "title"]
 ALL_AVAILABLE_FIELDS = [
     "ack",
     "aff",
@@ -68,6 +79,38 @@ ALL_AVAILABLE_FIELDS = [
     "identifier",
     "keyword",
     "page",
+]
+
+# This is not complete.
+ALL_VIEWABLE_FIELDS = [
+    "abstract",
+    "ack",
+    "aff",
+    "alternate_bibcode",
+    "alternate_title",
+    "arxiv_class",
+    "author",
+    "author_count",
+    "author_norm",
+    "bibcode",
+    "bibgroup",
+    "bibstem",
+    "citation",
+    "citation_count",
+    "cite_read_boost",
+    "classic_factor",
+    "copyright",
+    "data",
+    "date",
+    "doctype",
+    "doi",
+    "first_author",
+    "identifier",
+    "keyword",
+    "page",
+    "read_count",
+    "voluem",
+    "year",
 ]
 
 p = re.compile("http[?s]://ui.adsabs.harvard.edu/abs/(.*)/")
@@ -98,60 +141,104 @@ def cli():
 
 
 @cli.command()
-@click.option("--query", "-q")
-def searchtest(query):
-    if query is None:
-        session = PromptSession(
-            # lexer=PygmentsLexer(SqlLexer),
-            completer=ads_query_completer
-        )
-        while True:
-            try:
-                text = session.prompt("> ", multiline=True)
-            except KeyboardInterrupt:
-                continue  # Control-C pressed. Try again.
-            except EOFError:
-                break  # Control-D pressed.
-        print(text)
-
-
-@cli.command()
-@click.option("--query", "-q", prompt="Query")
-@click.option("-n", default=10, type=int, help="number of entries to get")
+@click.option("--query", "-q", type=str)
+@click.option("-n", default=10, type=int, help="number of entries to get (MAX: 2000)")
 @click.option("--fstring", "-f", type=str, help="format string")
-@click.option("--field", "-fl", type=str, help="field to get")
-def search(query, n, fstring):
-    """Search ADS
+@click.option(
+    "--field",
+    "-fl",
+    type=str,
+    help="comma-separated fields to get.\n"
+    "Exmaples: -fl ack,aff\n"
+    f"Default fields: {DEFAULT_FIELDS}",
+)
+def search(query, n, fstring, field):
+    """Search ADS with a query
+
+    \b
+    Query string can be given either as option:
+        ads search -q 'author:"huchra, j." year:2000-2005'
+        (Note that the entire query must be wrapped in ''.)
+    or you will be promprted to input interactively; use meta-Enter to finish.
     """
     MAX_ROWS = 2000
-    logger.debug(f"query: {query} n:{n}")
     if n > 2000:
         raise NotImplementedError()
     rows = n
 
-    # combine all fields in fstring and field to fl param
+    # TODO:combine all fields in fstring and field to fl param
+    if field is None:
+        field = DEFAULT_FIELDS
+    else:
+        field = field.split(",")
+        if not set(field) < set(ALL_VIEWABLE_FIELDS):
+            raise click.BadParameter(
+                f"invalid fields found:{set(field)-set(ALL_VIEWABLE_FIELDS)}"
+            )
 
-    q = ads.SearchQuery(q=query, rows=n)
+    if query is None:
+        # https://github.com/prompt-toolkit/python-prompt-toolkit/issues/502
+        if not sys.stdin.isatty():
+            query = sys.stdin.read()
+        else:
+            if not sys.stdout.isatty():
+                raise click.UsageError(
+                    "You are redirecting output; in this case you need to"
+                    "specify the query."
+                )
+            else:
+                session = PromptSession(
+                    # lexer=PygmentsLexer(SqlLexer),
+                    completer=ads_query_completer
+                )
+            query = session.prompt("Query: ", multiline=True)
+    query = query.replace("\n", " ").strip()
+    assert query, ValueError("Must input some query!")
+    logger.debug(f"query: {query} n:{n}")
+
+    q = ads.SearchQuery(q=query, rows=n, fl=field)
+
     if fstring:
+        logger.debug(f"fstring: {fstring}")
         t = Template(fstring)
         for i, a in enumerate(q):
-            click.echo(t.substitute(bibcode=a.bibcode))
-        logger.debug(f"{fstring}")
+            d = {name: getattr(a, name) for name in field}
+            try:
+                click.echo(t.substitute(**d))
+            except KeyError:
+                raise click.UsageError(
+                    "output string contains fields not queried;"
+                    "make sure all necessary fields are specified in --field."
+                    "We do not lazy-load attributes by default."
+                )
     else:
         for i, a in enumerate(q, 1):
             click.echo(f"{i:2d} ", nl=False)
             click.secho(f"{a.title[0][:85]}", fg="blue")
             click.echo(f"   {a.first_author} {a.year} {a.bibcode}")
-    # logger.debug(f"Rate limit: {q.response.get_ratelimits()}")
 
-    # while True:
-    #     ix = click.prompt("Please enter article number", type=int)
-    #     if (ix >= 1) & (ix <= 10):
-    #         break
-    # bibcode = q.articles[ix - 1].bibcode
-    # click.echo(bibcode)
+    logger.debug(f"Rate limit: {q.response.get_ratelimits()}")
 
-    # click.prompt("Actions?", type=click.Choice(('e','d')))
+
+def validate_year(s):
+    # 2012 or 2012-2015
+    pass
+
+
+@cli.command()
+@click.argument("authors", type=str)
+@click.argument("year", type=str, callback=validate_year)
+def lucky(authors, year):
+    """Do "lucky" search on ADS
+
+    Supported syntax:
+        huchra bahcall 1999-2005 galaxy
+        "huchra, j." bahcall 1999 galaxy
+        "huchra, j." bahcall 1999
+    """
+    # q = ads.SearchQuery(author=author, year=year, abs=abs)
+    # logger.debug(f"authors: {authors} year: {year}")
+    pass
 
 
 @cli.command()
@@ -190,9 +277,9 @@ def export(format, bibcodes):
     bibcodes = list(map(find_bibcode, bibcodes))
     logger.debug(f"bibcodes: {bibcodes}")
 
-    # q = ads.ExportQuery(bibcodes, format=format)
-    # print(q())
-    # logger.debug(f"Rate limit: {q.response.get_ratelimits()}")
+    q = ads.ExportQuery(bibcodes, format=format)
+    click.echo(q())
+    logger.debug(f"Rate limit: {q.response.get_ratelimits()}")
 
 
 @cli.command()
