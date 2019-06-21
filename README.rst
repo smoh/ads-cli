@@ -20,14 +20,6 @@ Usage
 
     ads search -n 10 -s 10 -q 'author:"lorem, ipsum" ...' -o json 
 
-
-Resources
----------
-
-- [adstex](https://github.com/yymao/adstex)
-- [ads2bibdesk](https://github.com/r-xue/ads2bibdesk) using new API
-- [adsquery](https://github.com/cphyc/adsquery)
-
 Installation
 ------------
 
