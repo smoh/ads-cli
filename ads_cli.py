@@ -11,6 +11,9 @@ from string import Template
 import ads
 import click
 
+from prompt_toolkit import PromptSession
+from prompt_toolkit.completion import WordCompleter
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
@@ -41,6 +44,9 @@ supported_export_formats = [
 # monkey-patch class attribute
 ads.ExportQuery.FORMATS = supported_export_formats
 
+ads_query_completer = WordCompleter(
+    ["author", "first_author", "year", "property", "title"], ignore_case=True
+)
 
 DEFAULT_FIELDS = ["id", "author", "first_author", "bibcode", "id", "year", "title"]
 ALL_AVAILABLE_FIELDS = [
@@ -89,6 +95,24 @@ def find_bibcode(s):
 @click.group()
 def cli():
     pass
+
+
+@cli.command()
+@click.option("--query", "-q")
+def searchtest(query):
+    if query is None:
+        session = PromptSession(
+            # lexer=PygmentsLexer(SqlLexer),
+            completer=ads_query_completer
+        )
+        while True:
+            try:
+                text = session.prompt("> ", multiline=True)
+            except KeyboardInterrupt:
+                continue  # Control-C pressed. Try again.
+            except EOFError:
+                break  # Control-D pressed.
+        print(text)
 
 
 @cli.command()
