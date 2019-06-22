@@ -11,9 +11,9 @@ from string import Template
 import ads
 import click
 import sys
-
 from prompt_toolkit import PromptSession
-from prompt_toolkit.completion import WordCompleter
+
+from ads_variables import ALL_VIEWABLE_FIELDS, ads_query_completer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -45,74 +45,8 @@ supported_export_formats = [
 # monkey-patch class attribute
 ads.ExportQuery.FORMATS = supported_export_formats
 
-ads_query_completer = WordCompleter(
-    [
-        "author:",
-        "first_authori:",
-        "year:",
-        "property:",
-        "title:",
-        "bibcode:",
-        "identifier:",
-        "doi:",
-    ],
-    ignore_case=True,
-)
 
 DEFAULT_FIELDS = ["id", "author", "first_author", "bibcode", "year", "title"]
-ALL_AVAILABLE_FIELDS = [
-    "ack",
-    "aff",
-    "alternate_bibcode",
-    "alternate_title",
-    "arxiv_class",
-    "author",
-    "author_count",
-    "bibcode",
-    "bibgroup",
-    "bibstem",
-    "citation",
-    "citation_count",
-    "data",
-    "doi",
-    "first_author",
-    "identifier",
-    "keyword",
-    "page",
-]
-
-# This is not complete.
-ALL_VIEWABLE_FIELDS = [
-    "abstract",
-    "ack",
-    "aff",
-    "alternate_bibcode",
-    "alternate_title",
-    "arxiv_class",
-    "author",
-    "author_count",
-    "author_norm",
-    "bibcode",
-    "bibgroup",
-    "bibstem",
-    "citation",
-    "citation_count",
-    "cite_read_boost",
-    "classic_factor",
-    "copyright",
-    "data",
-    "date",
-    "doctype",
-    "doi",
-    "first_author",
-    "identifier",
-    "keyword",
-    "page",
-    "read_count",
-    "voluem",
-    "year",
-]
-
 p = re.compile("http[?s]://ui.adsabs.harvard.edu/abs/(.*)/")
 
 
@@ -212,6 +146,8 @@ def search(query, n, fstring, field):
                     "We do not lazy-load attributes by default."
                 )
     else:
+        # from adsapp import app
+        # app.run()
         for i, a in enumerate(q, 1):
             click.echo(f"{i:2d} ", nl=False)
             click.secho(f"{a.title[0][:85]}", fg="blue")
