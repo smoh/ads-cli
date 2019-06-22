@@ -23,18 +23,17 @@ setup(
     description="Command-line interface to ADS",
     long_description=read("README.rst"),
     # packages=find_packages(exclude=("tests",)),
-    py_modules=["ads_cli"],
+    py_modules=["ads_cli", "ads_variables", "adsapp"],
     install_requires=["click"],
     entry_points="""
         [console_scripts]
         ads=ads_cli:cli
+        adscli=adsapp:run
     """,
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",

@@ -16,7 +16,7 @@ from prompt_toolkit import PromptSession
 from ads_variables import ALL_VIEWABLE_FIELDS, ads_query_completer
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.ERROR)
 ch = logging.StreamHandler()
 formatter = logging.Formatter("%(levelname)s - %(message)s")
 ch.setFormatter(formatter)
@@ -70,8 +70,14 @@ def find_bibcode(s):
 
 
 @click.group()
-def cli():
-    pass
+@click.option("--debug/--no-debug", default=False)
+@click.pass_context
+def cli(ctx, debug):
+    # ensure that ctx.obj exists and is a dict (in case `cli()` is called
+    # by means other than the `if` block below
+    ctx.ensure_object(dict)
+
+    ctx.obj["debug"] = debug
 
 
 @cli.command()
@@ -86,7 +92,8 @@ def cli():
     "Exmaples: -fl ack,aff\n"
     f"Default fields: {DEFAULT_FIELDS}",
 )
-def search(query, n, fstring, field):
+@click.pass_context
+def search(ctx, query, n, fstring, field):
     """Search ADS with a query
 
     \b
@@ -95,6 +102,8 @@ def search(query, n, fstring, field):
         (Note that the entire query must be wrapped in ''.)
     or you will be promprted to input interactively; use meta-Enter to finish.
     """
+    if ctx.obj["debug"]:
+        logger.setLevel(logging.DEBUG)
     MAX_ROWS = 2000
     if n > 2000:
         raise NotImplementedError()
@@ -186,7 +195,8 @@ def lucky(authors, year):
     type=click.Choice(supported_export_formats),
 )
 @click.argument("bibcodes", nargs=-1, callback=get_name)
-def export(format, bibcodes):
+@click.pass_context
+def export(ctx, format, bibcodes):
     """
     Export article(s) to the specified format.
 
@@ -209,13 +219,15 @@ def export(format, bibcodes):
 
     because in bash, `&` means put process in the background.
     """
+    if ctx.obj["debug"]:
+        logger.setLevel(logging.DEBUG)
     # TODO: This is breaking up string if one item given from stdin.
     bibcodes = list(map(find_bibcode, bibcodes))
     logger.debug(f"bibcodes: {bibcodes}")
 
-    q = ads.ExportQuery(bibcodes, format=format)
-    click.echo(q())
-    logger.debug(f"Rate limit: {q.response.get_ratelimits()}")
+    if not ctx.obj["debug"]:
+        q = ads.ExportQuery(bibcodes, format=format)
+        click.echo(q())
 
 
 @cli.command()

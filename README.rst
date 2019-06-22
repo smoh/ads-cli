@@ -14,23 +14,19 @@ Command-line interface to ADS
 Usage
 -----
 .. code-block:: bash
-    ads export bibtex 2014AJ....147..124M 2012ApJ...759....6E ...
-    
-    ads download 2014AJ....147..124M 2012ApJ...759....6E ...
 
-    ads search -n 10 -s 10 -q 'author:"lorem, ipsum" ...' -o json 
+    ads export 2014AJ....147..124M 2012ApJ...759....6E '2013A&A...558A..33'
+    
+    ads search -n 10 -q 'author:"^huchra, j."'
+
+    ads search    # you will be prompted.
+    Query: [put query here and hit <META-ENTER>]
 
 Installation
 ------------
 
 Requirements
 ^^^^^^^^^^^^
-
-Compatibility
--------------
-
-Licence
--------
 
 Authors
 -------

@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 from prompt_toolkit import Application, HTML
-from prompt_toolkit.history import FileHistory
 from prompt_toolkit.buffer import Buffer, reshape_text
 from prompt_toolkit.layout.containers import (
     VSplit,
@@ -40,7 +39,15 @@ import ads
 
 from ads_variables import ads_query_completer
 
-_fl = ["title", "bibcode", "author", "first_author", "year", "abstract"]
+_fl = [
+    "title",
+    "bibcode",
+    "author",
+    "first_author",
+    "year",
+    "abstract",
+    # "citation_count",
+]
 
 
 # Define UI
@@ -87,7 +94,7 @@ searchbar = FloatContainer(
             Window(
                 FormattedTextControl('Press "c-d" to quit.'), height=1, style="reverse"
             ),
-            Window(height=5, content=BufferControl(buffer=buffer1)),
+            Window(height=3, content=BufferControl(buffer=buffer1)),
         ],
         key_bindings=kb_search,
     ),
@@ -123,7 +130,7 @@ searchbar = FloatContainer(
 root_container = HSplit([searchbar, output, infoFrame])
 # root_container = HSplit([output, infoFrame])
 layout = Layout(root_container)  # , focused_element=output.children[0])
-app = Application(layout=layout, full_screen=False, key_bindings=kb)
+app = Application(layout=layout, full_screen=True, key_bindings=kb)
 
 # These are app-wide stateful variables; not sure how to structure things.
 app.ads_result = set()
@@ -134,7 +141,12 @@ app.NITEMS = 5  # number of items per page
 
 
 def format_article_info(article):
-    return HTML("<red>Abstract:</red> " f"{article.abstract}")
+    return HTML(
+        # "<red>Citations:</red> "
+        # f"{article.citation_count}\n"
+        "<red>Abstract:</red> "
+        f"{article.abstract}"
+    )
 
 
 def get_entries(articles):
@@ -253,17 +265,18 @@ def send_query(event):
     infoFrame.body.content.text = format_article_info(q.articles[idx])
 
 
-@kb_output.add("c")
-def select_(event):
-    cw = event.app.layout.current_window
-    if cw.bibcode in result:
-        cw.style = "bg:"
-        cw.content.style = "bg:"
-        result.discard(cw.bibcode)
-    else:
-        cw.style = "bg:blue"
-        cw.content.style = "bg:blue"
-        result.add(cw.bibcode)
+# @kb_output.add("c")
+# def select_(event):
+#     '''select window and store corresponding bibcode'''
+#     cw = event.app.layout.current_window
+#     if cw.bibcode in result:
+#         cw.style = "bg:"
+#         cw.content.style = "bg:"
+#         result.discard(cw.bibcode)
+#     else:
+#         cw.style = "bg:blue"
+#         cw.content.style = "bg:blue"
+#         result.add(cw.bibcode)
 
 
 @kb_output.add("o")
@@ -289,23 +302,6 @@ def select_(event):
     webbrowser.open_new_tab(url)
 
 
-# @kb_output.add("a")
-# def select_(event):
-#     cw = event.app.layout.current_window
-#     bibcode = cw.bibcode
-#     q = ads.SearchQuery(q=f"bibcode:{bibcode}", fl="abstract")
-#     abstract = q.next().abstract
-#     infoFrame.body.content.text = abstract
-
-
-# @kb_output.add("r")
-# def reset_(event):
-#     # dummy content to format stuff
-#     with open("dump.pkl", "rb") as f:
-#         q = pickle.load(f)
-#     event.app.reset()
-
-
 output.key_bindings = kb_output
 output.children = [
     Window(
@@ -318,7 +314,6 @@ output.children = [
 
 def run():
     result = app.run()
-    # print(result)
 
 
 if __name__ == "__main__":
