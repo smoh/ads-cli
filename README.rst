@@ -25,6 +25,10 @@ Usage
 Installation
 ------------
 
+.. code-block:: sh
+
+  pip [-e] git+https://github.com/smoh/ads-cli#egg=ads-cli
+
 Requirements
 ^^^^^^^^^^^^
 
