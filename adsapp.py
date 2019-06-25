@@ -46,7 +46,8 @@ _fl = [
     "first_author",
     "year",
     "abstract",
-    # "citation_count",
+    "citation_count",
+    "read_count"
 ]
 
 
@@ -56,7 +57,7 @@ kb_search = KeyBindings()
 kb_output = KeyBindings()
 
 infoFrame = Frame(
-    Window(wrap_lines=True, height=5, content=FormattedTextControl(text=""))
+    Window(wrap_lines=True, height=10, content=FormattedTextControl(text=""))
 )
 output = HSplit([])
 
@@ -94,7 +95,7 @@ searchbar = FloatContainer(
             Window(
                 FormattedTextControl('Press "c-d" to quit.'), height=1, style="reverse"
             ),
-            Window(height=3, content=BufferControl(buffer=buffer1)),
+            Window(height=4, content=BufferControl(buffer=buffer1)),
         ],
         key_bindings=kb_search,
     ),
@@ -142,9 +143,11 @@ app.NITEMS = 5  # number of items per page
 
 def format_article_info(article):
     return HTML(
-        # "<red>Citations:</red> "
-        # f"{article.citation_count}\n"
-        "<red>Abstract:</red> "
+        "<seagreen>Citations:</seagreen> "
+        f"{article.citation_count}\n"
+        "<seagreen>Read count:</seagreen> "
+        f"{article.read_count}\n"
+        "<seagreen>Abstract:</seagreen>\n"
         f"{article.abstract}"
     )
 
