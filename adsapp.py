@@ -213,17 +213,14 @@ def next_page(event):
     """Go to next page
     """
     app = event.app
-    if app.ads_page > 2:
+    try:
+        items = get_entries(app.pages[app.ads_page+1])
+        app.ads_page += 1
+    except IndexError:
         return
-    app.ads_page += 1
-    app.ads_item_idx = 0
-    items = get_entries(
-        app.ads_q.articles[app.NITEMS * app.ads_page : app.NITEMS * (app.ads_page + 1)]
-    )
     event.app.layout.container.children[1].children = items
     event.app.layout.focus(items[0])
-    idx = app.NITEMS * app.ads_page + app.ads_item_idx
-    infoFrame.body.content.text = format_article_info(app.ads_q.articles[idx])
+    infoFrame.body.content.text = format_article_info(app.pages[app.ads_page][0])
 
 
 @kb_output.add("h")
@@ -234,14 +231,10 @@ def previous_page(event):
     if app.ads_page == 0:
         return
     app.ads_page -= 1
-    app.ads_item_idx = 0
-    items = get_entries(
-        app.ads_q.articles[app.NITEMS * app.ads_page : app.NITEMS * (app.ads_page + 1)]
-    )
+    items = get_entries(app.pages[app.ads_page])
     event.app.layout.container.children[1].children = items
     event.app.layout.focus(items[0])
-    idx = app.NITEMS * app.ads_page + app.ads_item_idx
-    infoFrame.body.content.text = format_article_info(app.ads_q.articles[idx])
+    infoFrame.body.content.text = format_article_info(app.pages[app.ads_page][0])
 
 
 @kb_search.add("c-j")
@@ -257,15 +250,17 @@ def send_query(event):
     list(q)
     app = event.app
     app.ads_q = q
+    def chunks(l, n):
+        """Yield successive n-sized chunks from l."""
+        for i in range(0, len(l), n):
+            yield l[i:i + n]
+    app.pages = list(chunks(q.articles, app.NITEMS))
 
-    app.ads_page, app.ads_item_idx = 0, 0
-    items = get_entries(
-        q.articles[app.NITEMS * app.ads_page : app.NITEMS * (app.ads_page + 1)]
-    )
+    app.ads_page = 0
+    items = get_entries(app.pages[0])
     event.app.layout.container.children[1].children = items
     event.app.layout.focus(items[0])
-    idx = app.NITEMS * app.ads_page + app.ads_item_idx
-    infoFrame.body.content.text = format_article_info(q.articles[idx])
+    infoFrame.body.content.text = format_article_info(app.pages[app.ads_page][0])
 
 
 # @kb_output.add("c")
