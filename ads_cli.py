@@ -108,9 +108,8 @@ def search(ctx, query, n, fstring, field):
     if ctx.obj["debug"]:
         logger.setLevel(logging.DEBUG)
     MAX_ROWS = 2000
-    if n > 2000:
+    if n > MAX_ROWS:
         raise NotImplementedError()
-    rows = n
 
     # TODO:combine all fields in fstring and field to fl param
     if field is None:

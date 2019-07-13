@@ -1,20 +1,10 @@
 from __future__ import unicode_literals
 from prompt_toolkit import Application, HTML
-from prompt_toolkit.buffer import Buffer, reshape_text
-from prompt_toolkit.layout.containers import (
-    VSplit,
-    HSplit,
-    Window,
-    FloatContainer,
-    Float,
-)
+from prompt_toolkit.buffer import Buffer
+from prompt_toolkit.layout.containers import HSplit, Window, FloatContainer, Float
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.application import get_app
-from prompt_toolkit.styles import Style
-from prompt_toolkit.key_binding.bindings.focus import focus_next, focus_previous
-from prompt_toolkit.shortcuts import message_dialog
 from prompt_toolkit import PromptSession
 from prompt_toolkit.layout.menus import CompletionsMenu
 from prompt_toolkit.widgets import (
@@ -33,7 +23,6 @@ from prompt_toolkit.widgets import (
 from prompt_toolkit.layout.controls import SearchBufferControl
 from prompt_toolkit.completion import WordCompleter
 import webbrowser
-import pickle
 import html
 import ads
 
@@ -47,7 +36,7 @@ _fl = [
     "year",
     "abstract",
     "citation_count",
-    "read_count"
+    "read_count",
 ]
 
 
@@ -62,6 +51,7 @@ infoFrame = Frame(
 output = HSplit([])
 
 
+# import pickle
 # dummy content to format stuff
 # with open("dump.pkl", "rb") as f:
 #     q = pickle.load(f)
@@ -268,20 +258,6 @@ def send_query(event):
     infoFrame.body.content.text = format_article_info(q.articles[idx])
 
 
-# @kb_output.add("c")
-# def select_(event):
-#     '''select window and store corresponding bibcode'''
-#     cw = event.app.layout.current_window
-#     if cw.bibcode in result:
-#         cw.style = "bg:"
-#         cw.content.style = "bg:"
-#         result.discard(cw.bibcode)
-#     else:
-#         cw.style = "bg:blue"
-#         cw.content.style = "bg:blue"
-#         result.add(cw.bibcode)
-
-
 @kb_output.add("o")
 def select_(event):
     # event.app.layout.current_window.content = FormattedTextControl(text="dksjfksdjf")
@@ -316,7 +292,7 @@ output.children = [
 
 
 def run():
-    result = app.run()
+    app.run()
 
 
 if __name__ == "__main__":
