@@ -79,14 +79,13 @@ buffer1 = Buffer(
 #     key_bindings=kb_search,
 # )
 
+statusbar = Window(
+    FormattedTextControl('Press "c-d" to quit.'), height=1, style="reverse"
+)
+
 searchbar = FloatContainer(
     content=HSplit(
-        [
-            Window(
-                FormattedTextControl('Press "c-d" to quit.'), height=1, style="reverse"
-            ),
-            Window(height=4, content=BufferControl(buffer=buffer1)),
-        ],
+        [statusbar, Window(height=4, content=BufferControl(buffer=buffer1))],
         key_bindings=kb_search,
     ),
     floats=[
@@ -244,18 +243,20 @@ def send_query(event):
     """Do an ADS search"""
     query = buffer1.text
     q = ads.SearchQuery(q=query, fl=_fl)
-    list(q)
     app = event.app
     app.ads_q = q
+    list(q)
+    # TODO: handle query error
 
-    app.ads_page, app.ads_item_idx = 0, 0
-    items = get_entries(
-        q.articles[app.NITEMS * app.ads_page : app.NITEMS * (app.ads_page + 1)]
-    )
-    event.app.layout.container.children[1].children = items
-    event.app.layout.focus(items[0])
-    idx = app.NITEMS * app.ads_page + app.ads_item_idx
-    infoFrame.body.content.text = format_article_info(q.articles[idx])
+    if len(list(q.articles)) > 0:
+        app.ads_page, app.ads_item_idx = 0, 0
+        items = get_entries(
+            q.articles[app.NITEMS * app.ads_page : app.NITEMS * (app.ads_page + 1)]
+        )
+        event.app.layout.container.children[1].children = items
+        event.app.layout.focus(items[0])
+        idx = app.NITEMS * app.ads_page + app.ads_item_idx
+        infoFrame.body.content.text = format_article_info(q.articles[idx])
 
 
 @kb_output.add("o")

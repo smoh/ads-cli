@@ -104,6 +104,8 @@ def search(ctx, query, n, fstring, field):
         (Note that the entire query must be wrapped in ''.)
     or you will be promprted to input interactively with autocompletion.
     Use meta-Enter to finish.
+
+    See https://adsabs.github.io/help/search/comprehensive-solr-term-list.
     """
     if ctx.obj["debug"]:
         logger.setLevel(logging.DEBUG)
