@@ -25,7 +25,7 @@ Query: [put query here and hit <META-ENTER>]
 
 `adscli` launches a terminal app.
 
-![](demo.gif)
+![](demo4.gif)
 
 
 Key bindings:
