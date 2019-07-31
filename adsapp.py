@@ -93,11 +93,15 @@ app.NITEMS = 5  # number of items per page
 app.pages = None  # chunked list of articles (list of lists)
 
 
+tidy_author = lambda x: [] if x is None else x
+tidy_title = lambda x: ["NO TITLE AVAILABLE"] if x is None else x
+
+
 def format_article_info(article):
     """Format current article's info for infoFrame"""
     return HTML(
-        f"<b>{html.escape(article.title[0])}</b>\n"
-        f"{html.escape('; '.join(article.author[:3]))}\n"
+        f"<b>{html.escape(tidy_title(article.title)[0])}</b>\n"
+        f"{html.escape('; '.join(tidy_author(article.author)[:3]))}\n"
         "<seagreen>Citations:</seagreen> "
         f"{article.citation_count}\n"
         "<seagreen>Read count:</seagreen> "
@@ -110,7 +114,6 @@ def format_article_info(article):
 def get_entries(articles):
     """Returns a list of Windows each containing one article"""
     # sometimes author is None
-    tidy_authors = lambda x: [] if x is None else x
     items = []
     for i, a in enumerate(articles):
         w = Window(
@@ -118,8 +121,8 @@ def get_entries(articles):
             content=FormattedTextControl(
                 focusable=True,
                 text=HTML(
-                    f"{i:2d} <skyblue>{html.escape(a.title[0])}</skyblue>\n"
-                    f"   <violet>{html.escape('; '.join(tidy_authors(a.author[:3])))}</violet> "
+                    f"{i:2d} <skyblue>{html.escape(tidy_title(a.title)[0])}</skyblue>\n"
+                    f"   <violet>{html.escape('; '.join(tidy_author(a.author)[:3]))}</violet> "
                     f"<gray>{a.year}</gray> "
                     f"{html.escape(a.bibcode)}"
                 ),
