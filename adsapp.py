@@ -109,6 +109,8 @@ def format_article_info(article):
 
 def get_entries(articles):
     """Returns a list of Windows each containing one article"""
+    # sometimes author is None
+    tidy_authors = lambda x: [] if x is None else x
     items = []
     for i, a in enumerate(articles):
         w = Window(
@@ -117,7 +119,7 @@ def get_entries(articles):
                 focusable=True,
                 text=HTML(
                     f"{i:2d} <skyblue>{html.escape(a.title[0])}</skyblue>\n"
-                    f"   <violet>{html.escape('; '.join(a.author[:3]))}</violet> "
+                    f"   <violet>{html.escape('; '.join(tidy_authors(a.author[:3])))}</violet> "
                     f"<gray>{a.year}</gray> "
                     f"{html.escape(a.bibcode)}"
                 ),
