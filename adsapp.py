@@ -28,6 +28,7 @@ import ads
 
 from ads_variables import ads_query_completer
 
+# fields to get from query
 _fl = [
     "title",
     "bibcode",
@@ -57,27 +58,9 @@ output = HSplit([])
 #     q = pickle.load(f)
 
 
-# session = PromptSession(history=FileHistory("~/.ads_history"))
-# session = PromptSession()
-# query = session.prompt("Query:")
-# q = ads.SearchQuery(
-#     q=query,
-#     rows=20,
-#     fl=["title", "bibcode", "author", "first_author", "year", "abstract"],
-# )
-# list(q)
-
-
 buffer1 = Buffer(
     completer=ads_query_completer, complete_while_typing=True
 )  # Editable buffer.
-# searchbar = Frame(
-#     title="Search",
-#     body=HSplit(
-#         [Window(height=3, content=BufferControl(buffer=buffer1), wrap_lines=True)]
-#     ),
-#     key_bindings=kb_search,
-# )
 
 statusbar = Window(
     FormattedTextControl('Press "c-d" to quit.'), height=1, style="reverse"
@@ -97,40 +80,21 @@ searchbar = FloatContainer(
     ],
 )
 
-# # ------
-# searchbar = TextArea(
-#     height=3,
-#     prompt="Query:",
-#     multiline=True,
-#     completer=ads_query_completer,
-#     complete_while_typing=True,
-# )
-# def accept(buff):
-#     query = searchbar.text
-#     q = ads.SearchQuery(
-#         q=query,
-#         rows=20,
-#         fl=["title", "bibcode", "author", "first_author", "year", "abstract"],
-#     )
-#     list(q)
-#     output.children = get_entries(q.articles[:5])
-# searchbar.accept_handler = accept
-
 # Put it all together
 root_container = HSplit([searchbar, output, infoFrame])
-# root_container = HSplit([output, infoFrame])
-layout = Layout(root_container)  # , focused_element=output.children[0])
+layout = Layout(root_container)
 app = Application(layout=layout, full_screen=True, key_bindings=kb)
 
 # These are app-wide stateful variables; not sure how to structure things.
-app.ads_result = set()
 app.ads_q = None  # either None or ads.SearchQuery
 app.ads_page = 0  # current page
 app.ads_item_idx = 0  # current item index within page
 app.NITEMS = 5  # number of items per page
+app.pages = None  # chunked list of articles (list of lists)
 
 
 def format_article_info(article):
+    """Format current article's info for infoFrame"""
     return HTML(
         "<seagreen>Citations:</seagreen> "
         f"{article.citation_count}\n"
@@ -142,7 +106,7 @@ def format_article_info(article):
 
 
 def get_entries(articles):
-    """returns list of Widnows"""
+    """Returns a list of Windows each containing one article"""
     items = []
     for i, a in enumerate(articles):
         w = Window(
@@ -236,6 +200,19 @@ def send_query(event):
     """Do an ADS search"""
     query = buffer1.text
     q = ads.SearchQuery(q=query, fl=_fl)
+    # this can be empty
+    #
+    try:
+        list(q)
+    except (
+        ads.exceptions.APIResponseError,
+        ads.exceptions.SolrResponseParseError,
+    ) as e:
+        statusbar.content.text = "Boom! Your query failed."
+        return
+    if len(q.articles) == 0:
+        statusbar.content.text = "Your query returned nothing."
+        return
     app = event.app
     app.ads_q = q
 
@@ -255,8 +232,6 @@ def send_query(event):
 
 @kb_output.add("o")
 def select_(event):
-    # event.app.layout.current_window.content = FormattedTextControl(text="dksjfksdjf")
-    # event.app.layout.current_window.style = "bg:red"
     cw = event.app.layout.current_window
     url = f"https://ui.adsabs.harvard.edu/abs/{cw.bibcode}"
     webbrowser.open_new_tab(url)
