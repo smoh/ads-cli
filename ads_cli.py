@@ -70,7 +70,9 @@ def find_bibcode(s):
 
 
 @click.group()
-@click.option("--debug/--no-debug", default=False)
+@click.option(
+    "--debug/--no-debug", default=False, help="debug will not actually send queries"
+)
 @click.pass_context
 def cli(ctx, debug):
     # ensure that ctx.obj exists and is a dict (in case `cli()` is called
@@ -100,14 +102,16 @@ def search(ctx, query, n, fstring, field):
     Query string can be given either as option:
         ads search -q 'author:"huchra, j." year:2000-2005'
         (Note that the entire query must be wrapped in ''.)
-    or you will be promprted to input interactively; use meta-Enter to finish.
+    or you will be promprted to input interactively with autocompletion.
+    Use meta-Enter to finish.
+
+    See https://adsabs.github.io/help/search/comprehensive-solr-term-list.
     """
     if ctx.obj["debug"]:
         logger.setLevel(logging.DEBUG)
     MAX_ROWS = 2000
-    if n > 2000:
+    if n > MAX_ROWS:
         raise NotImplementedError()
-    rows = n
 
     # TODO:combine all fields in fstring and field to fl param
     if field is None:
@@ -140,6 +144,8 @@ def search(ctx, query, n, fstring, field):
     logger.debug(f"query: {query} n:{n}")
 
     q = ads.SearchQuery(q=query, rows=n, fl=field)
+    # if len(list(q)) == 0:
+    #     click.echo("Your search returned nothing.")
 
     if fstring:
         logger.debug(f"fstring: {fstring}")
@@ -165,14 +171,9 @@ def search(ctx, query, n, fstring, field):
     logger.debug(f"Rate limit: {q.response.get_ratelimits()}")
 
 
-def validate_year(s):
-    # 2012 or 2012-2015
-    pass
-
-
-@cli.command()
+@cli.command(help="NOT IMPLEMENTED")
 @click.argument("authors", type=str)
-@click.argument("year", type=str, callback=validate_year)
+@click.argument("year", type=str)
 def lucky(authors, year):
     """Do "lucky" search on ADS
 
@@ -181,9 +182,10 @@ def lucky(authors, year):
         "huchra, j." bahcall 1999 galaxy
         "huchra, j." bahcall 1999
     """
+    # yearstr =
     # q = ads.SearchQuery(author=author, year=year, abs=abs)
     # logger.debug(f"authors: {authors} year: {year}")
-    pass
+    raise NotImplementedError
 
 
 @cli.command()
@@ -224,15 +226,18 @@ def export(ctx, format, bibcodes):
     # TODO: This is breaking up string if one item given from stdin.
     bibcodes = list(map(find_bibcode, bibcodes))
     logger.debug(f"bibcodes: {bibcodes}")
+    if len(bibcodes) == 0:
+        raise click.UsageError("At least one bibcode must be specified.")
 
     if not ctx.obj["debug"]:
         q = ads.ExportQuery(bibcodes, format=format)
         click.echo(q())
 
 
-@cli.command()
+@cli.command(help="NOT IMPLEMENTED")
 @click.argument("bibcode", nargs=-1, callback=get_name)
 def download(bibcode):
+    # TODO
     pass
 
 

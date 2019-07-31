@@ -29,5 +29,38 @@ def test_export():
 }"""
     )
 
-    result = runner.invoke(cli, ["export", "'2013A&A...558A..33A'"])
+    # test A&A
+    result = runner.invoke(cli, ["export", "2013A&A...558A..33A"])
     assert result.exit_code == 0
+
+    # ads url
+    result = runner.invoke(
+        cli,
+        ["export", "https://ui.adsabs.harvard.edu/abs/2005IAUS..216..170H/abstract"],
+    )
+    assert result.exit_code == 0
+
+    # multiple bibcodes
+    result = runner.invoke(
+        cli,
+        [
+            "export",
+            "https://ui.adsabs.harvard.edu/abs/2005IAUS..216..170H/abstract",
+            "2013A&A...558A..33A",
+        ],
+    )
+    assert result.exit_code == 0
+
+
+def test_search():
+    runner = CliRunner()
+
+    # basic usage
+    result = runner.invoke(cli, ["search", "-q author:spergel year:2000"])
+    assert result.exit_code == 0
+    assert len[result.output.splitlines()] == 20
+
+    # more output
+    result = runner.invoke(cli, ["search", "-q author:spergel year:2000-2005", "-n 30"])
+    assert result.exit_code == 0
+    assert len[result.output.splitlines()] == 60

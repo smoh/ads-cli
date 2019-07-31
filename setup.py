@@ -24,7 +24,7 @@ setup(
     long_description=read("README.rst"),
     # packages=find_packages(exclude=("tests",)),
     py_modules=["ads_cli", "ads_variables", "adsapp"],
-    install_requires=["click"],
+    install_requires=["click", "prompt_toolkit"],
     entry_points="""
         [console_scripts]
         ads=ads_cli:cli
@@ -35,8 +35,6 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
