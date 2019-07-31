@@ -96,6 +96,8 @@ app.pages = None  # chunked list of articles (list of lists)
 def format_article_info(article):
     """Format current article's info for infoFrame"""
     return HTML(
+        f"<b>{html.escape(article.title[0])}</b>\n"
+        f"{html.escape('; '.join(article.author[:3]))}\n"
         "<seagreen>Citations:</seagreen> "
         f"{article.citation_count}\n"
         "<seagreen>Read count:</seagreen> "
