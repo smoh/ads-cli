@@ -18,7 +18,7 @@ ads export 2014AJ....147..124M 2012ApJ...759....6E '2013A&A...558A..33'
 # by default returns 10 entries to stdout
 ads search -q 'author:"^huchra, j."'
 
-# If not query is given, you will be prompted.
+# If no query is given, you will be prompted.
 ads search    # you will be prompted.
 Query: [put query here and hit <META-ENTER>]
 ```
@@ -33,7 +33,7 @@ Key bindings:
 |    cursor     | key |                  what it does                   |
 |:-------------:|:---:|:-----------------------------------------------:|
 | in search bar | C-s |                    Do search                    |
-| in search bar | C-j | When cursor is in search bar, go to first entry |
+| in search bar | C-j | When cursor is in search bar, go to entries frame |
 | in item list  | j,k |            Go to next/previous entry            |
 | in item list  | h,l |            Go to previous/next page             |
 | in item list  |  o  |               Open article in ADS               |
