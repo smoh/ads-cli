@@ -21,7 +21,7 @@ setup(
     author="Semyeong Oh",
     author_email="semyeong.oh@gmail.com",
     description="Command-line interface to ADS",
-    long_description=read("README.rst"),
+    long_description=read("README.md"),
     # packages=find_packages(exclude=("tests",)),
     py_modules=["ads_cli", "ads_variables", "adsapp"],
     install_requires=["click", "prompt_toolkit"],
