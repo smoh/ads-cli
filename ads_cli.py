@@ -94,8 +94,9 @@ def cli(ctx, debug):
     "Exmaples: -fl ack,aff\n"
     f"Default fields: {DEFAULT_FIELDS}",
 )
+@click.option("--json", is_flag=True, help="return raw json")
 @click.pass_context
-def search(ctx, query, n, fstring, field):
+def search(ctx, query, n, fstring, field, json):
     """Search ADS with a query
 
     \b
@@ -147,6 +148,9 @@ def search(ctx, query, n, fstring, field):
     # if len(list(q)) == 0:
     #     click.echo("Your search returned nothing.")
 
+    if fstring and json:
+        raise click.UsageError("they cannot be both set.")
+
     if fstring:
         logger.debug(f"fstring: {fstring}")
         t = Template(fstring)
@@ -160,6 +164,11 @@ def search(ctx, query, n, fstring, field):
                     "make sure all necessary fields are specified in --field."
                     "We do not lazy-load attributes by default."
                 )
+    elif json:
+        list(q)
+        import json
+
+        click.echo(json.dumps(q.response.json["response"]))
     else:
         # from adsapp import app
         # app.run()

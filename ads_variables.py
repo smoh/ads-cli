@@ -33,6 +33,7 @@ ALL_VIEWABLE_FIELDS = [
     "read_count",
     "voluem",
     "year",
+    "title"
 ]
 
 ads_query_completer = WordCompleter(
