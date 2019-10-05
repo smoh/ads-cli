@@ -243,6 +243,51 @@ def export(ctx, format, bibcodes):
         click.echo(q())
 
 
+@cli.command()
+@click.argument("bibcodes", nargs=-1, callback=get_name)
+@click.option("--pdf", is_flag=True, help="Open arxiv PDF.")
+@click.pass_context
+def open(ctx, bibcodes, pdf):
+    """
+    Open article(s) specified by their bibcodes.
+    
+    By default, this will open the abstract page(s) in the default webbrowser.
+
+    NOTE: If a bibcode contains `&` e.g., "2017A&A...608A.116C",
+    either `&` needs to be escaped as in
+    
+        ads open 2017A\&A...608A.116C
+    
+    or put in quotes
+
+        ads open "2017A&A...608A.116C"
+
+    because in bash, `&` means put process in the background.
+    """
+    if ctx.obj["debug"]:
+        logger.setLevel(logging.DEBUG)
+    # TODO: This is breaking up string if one item given from stdin.
+    bibcodes = list(map(find_bibcode, bibcodes))
+    logger.debug(f"bibcodes: {bibcodes}")
+    if len(bibcodes) == 0:
+        raise click.UsageError("At least one bibcode must be specified.")
+
+    if not ctx.obj["debug"]:
+        urls = list(map(urllib.parse.quote, bibcodes))
+        if pdf:
+            urls = [
+                "https://ui.adsabs.harvard.edu/link_gateway/{}/EPRINT_PDF".format(u)
+                for u in urls
+            ]
+        else:
+            urls = [
+                "https://ui.adsabs.harvard.edu/abs/{}/abstract".format(u) for u in urls
+            ]
+        import webbrowser
+
+        list(map(webbrowser.open_new_tab, urls))
+
+
 @cli.command(help="NOT IMPLEMENTED")
 @click.argument("bibcode", nargs=-1, callback=get_name)
 def download(bibcode):
